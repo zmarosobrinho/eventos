@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="form-card">
+    <h2>Entrar</h2>
+    <form method="post">
+      <label for="username">Usuário</label>
+      <input type="text" id="username" name="username" required>
+
+      <label for="password">Senha</label>
+      <input type="password" id="password" name="password" required>
+
+      <button type="submit">Acessar</button>
+    </form>
+    <p>Não possui conta? <a href="{{ url_for('register') }}">Cadastre-se</a>.</p>
+  </section>
+{% endblock %}
