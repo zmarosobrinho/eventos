@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="form-card">
+    <h2>{% if event %}Editar evento{% else %}Novo evento{% endif %}</h2>
+    <form method="post">
+      <label for="title">Nome do evento</label>
+      <input type="text" id="title" name="title" value="{{ event.title if event else '' }}" required>
+
+      <label for="city">Cidade</label>
+      <input type="text" id="city" name="city" value="{{ event.city if event else '' }}" required>
+
+      <label for="start_datetime">Data e hora de início</label>
+      <input type="datetime-local" id="start_datetime" name="start_datetime" value="{{ event.start_datetime.strftime('%Y-%m-%dT%H:%M') if event else '' }}" required>
+
+      <label class="checkbox">
+        <input type="checkbox" name="is_multi_day" {% if event and event.is_multi_day %}checked{% endif %}> Evento de vários dias?
+      </label>
+
+      <label for="end_datetime">Data e hora de término (se aplicável)</label>
+      <input type="datetime-local" id="end_datetime" name="end_datetime" value="{{ event.end_datetime.strftime('%Y-%m-%dT%H:%M') if event and event.end_datetime else '' }}">
+
+      <label class="checkbox">
+        <input type="checkbox" name="is_paid" {% if event and event.is_paid %}checked{% endif %}> Evento pago?
+      </label>
+
+      <label for="price_info">Detalhes de valor (opcional)</label>
+      <input type="text" id="price_info" name="price_info" placeholder="Ex: R$ 50 inteira, R$ 25 meia" value="{{ event.price_info if event else '' }}">
+
+      <label for="description">Descrição</label>
+      <textarea id="description" name="description" rows="5" required>{{ event.description if event else '' }}</textarea>
+
+      <button type="submit">Salvar</button>
+    </form>
+  </section>
+{% endblock %}

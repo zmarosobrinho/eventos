@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="hero">
+    <div>
+      <h2>Encontre eventos em qualquer cidade</h2>
+      <p>Consulte sem login e participe da curadoria colaborativa.</p>
+    </div>
+    {% if user %}
+      <a class="button" href="{{ url_for('create_event') }}">Cadastrar evento</a>
+    {% else %}
+      <a class="button" href="{{ url_for('register') }}">Crie sua conta</a>
+    {% endif %}
+  </section>
+
+  <section class="list">
+    <div class="map-card">
+      <div class="map-header">
+        <h3>Mapa de eventos</h3>
+        <p>Veja quantos eventos existem em cada cidade.</p>
+      </div>
+      <div id="event-map" aria-label="Mapa com eventos"></div>
+    </div>
+    {% if events %}
+      <ul>
+        {% for event in events %}
+          <li class="card">
+            <div>
+              <h3><a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.title }}</a></h3>
+              <p class="meta">{{ event.city }} • {{ event.schedule_label() }} • {{ event.paid_label() }}</p>
+              <p class="description">{{ event.description[:160] }}{% if event.description|length > 160 %}...{% endif %}</p>
+            </div>
+            <div class="actions">
+              <a href="{{ url_for('event_detail', event_id=event.id) }}">Ver detalhes</a>
+              {% if user %}
+                <a href="{{ url_for('edit_event', event_id=event.id) }}">Editar</a>
+                <form action="{{ url_for('delete_event', event_id=event.id) }}" method="post" onsubmit="return confirm('Deseja remover este evento?');">
+                  <button type="submit">Excluir</button>
+                </form>
+              {% endif %}
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Nenhum evento cadastrado ainda. Que tal adicionar o primeiro?</p>
+    {% endif %}
+  </section>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+    const cityData = {{ city_data|tojson }};
+
+    function initMap() {
+      const mapElement = document.getElementById('event-map');
+      if (!mapElement || cityData.length === 0) {
+        mapElement && (mapElement.innerHTML = '<p class="empty-map">Sem eventos cadastrados para exibir no mapa.</p>');
+        return;
+      }
+
+      const map = L.map('event-map').setView([-14.235, -51.925], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        maxZoom: 18,
+      }).addTo(map);
+
+      const geocodeCity = async (cityName) => {
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(cityName)}`;
+        const response = await fetch(url, { headers: { 'Accept-Language': 'pt-BR' } });
+        if (!response.ok) return null;
+        const results = await response.json();
+        if (!results || results.length === 0) return null;
+        return {
+          lat: parseFloat(results[0].lat),
+          lon: parseFloat(results[0].lon),
+          label: results[0].display_name,
+        };
+      };
+
+      const addMarkers = async () => {
+        for (const item of cityData) {
+          const location = await geocodeCity(item.city);
+          if (!location) continue;
+          const marker = L.marker([location.lat, location.lon]).addTo(map);
+          marker.bindPopup(`<strong>${item.city}</strong><br>${item.count} evento(s)`);
+        }
+      };
+
+      addMarkers();
+    }
+
+    document.addEventListener('DOMContentLoaded', initMap);
+  </script>
+{% endblock %}
