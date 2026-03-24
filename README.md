@@ -1,47 +1,39 @@
 # Sistema de Frases para Lives (PHP + MySQL)
 
-Sistema interno (sem página pública) para cadastrar produtos, categorias e frases, e depois exibir frases aleatórias relacionadas ao produto escolhido.
+Projeto pronto para hospedagem compartilhada e envio manual por FTP.
 
-## Requisitos
-- PHP 8.1+
-- MySQL 8+
-- Servidor web (Apache/Nginx) ou servidor embutido do PHP para testes
+## 1) Arquivos para enviar ao servidor
+Envie **todos** os arquivos e pastas abaixo para a pasta do site (ex.: `public_html`):
 
-## Estrutura de dados
-- `products`: nome + descrição (`MEDIUMTEXT`)
-- `categories`: categorias de produto
-- `messages`: frases/mensagens
-- `product_categories`: relação N:N entre produtos e categorias
-- `category_messages`: relação N:N entre categorias e mensagens
+- `index.php`
+- `login.php`
+- `logout.php`
+- `conexao.php`
+- `seguranca.php`
+- `topo.php`
+- `rodape.php`
+- `produtos.php`
+- `categorias.php`
+- `mensagens.php`
+- `produto_categorias.php`
+- `apresentacao.php`
+- `assets/estilo.css`
+- `banco.sql` (este pode ficar só no seu computador após importar)
 
-O script `schema.sql` cria o banco e todas as tabelas.
+## 2) Como importar o banco
+1. Abra o phpMyAdmin da hospedagem.
+2. Crie um banco de dados (ou use um já criado).
+3. Clique em **Importar** e selecione o arquivo `banco.sql`.
+4. Edite o arquivo `conexao.php` com os dados reais de host, banco, usuário e senha do MySQL.
 
-## Configuração
-1. Crie o banco/tabelas:
-   ```bash
-   mysql -u root -p < schema.sql
-   ```
-2. Configure acesso ao banco via variáveis de ambiente (opcional):
-   ```bash
-   export DB_HOST=127.0.0.1
-   export DB_NAME=eventos
-   export DB_USER=root
-   export DB_PASS=''
-   ```
-3. Rode localmente:
-   ```bash
-   php -S localhost:8080
-   ```
-4. Acesse `http://localhost:8080`.
+## 3) Quais páginas abrir no navegador
+1. Abra `https://seudominio.com/login.php` e faça login.
+2. Depois use o menu:
+   - `produtos.php` para cadastrar produtos
+   - `categorias.php` para cadastrar categorias
+   - `mensagens.php` para cadastrar frases e vincular categorias
+   - `produto_categorias.php` para vincular categorias aos produtos
+   - `apresentacao.php` para selecionar produto e ver frases aleatórias
 
-## Fluxo de uso
-1. Cadastrar produtos em `products.php`.
-2. Cadastrar categorias em `categories.php`.
-3. Cadastrar mensagens e vincular às categorias em `messages.php`.
-4. Associar categorias aos produtos em `product_categories.php`.
-5. Em `live.php`, selecionar o produto para visualizar frases aleatórias.
-
-## Tela de apresentação (`live.php`)
-- Mostra **título do produto** e **descrição completa**.
-- Exibe em **grid**, em ordem aleatória, todas as frases vinculadas às categorias daquele produto.
-- O produto selecionado fica salvo na sessão (`$_SESSION['live_product_id']`) e também na URL (`?product_id=`), então ao atualizar a página o mesmo produto permanece selecionado e as frases são sorteadas novamente.
+## Observação importante
+- Troque o usuário e senha definidos em `seguranca.php` antes de publicar.

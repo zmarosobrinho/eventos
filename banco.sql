@@ -1,0 +1,40 @@
+CREATE DATABASE IF NOT EXISTS frases_lives CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE frases_lives;
+
+CREATE TABLE IF NOT EXISTS produtos (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    descricao MEDIUMTEXT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS categorias (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(120) NOT NULL UNIQUE,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS mensagens (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(180) NOT NULL,
+    texto TEXT NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS produto_categorias (
+    produto_id INT UNSIGNED NOT NULL,
+    categoria_id INT UNSIGNED NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (produto_id, categoria_id),
+    CONSTRAINT fk_pc_produto FOREIGN KEY (produto_id) REFERENCES produtos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pc_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS categoria_mensagens (
+    categoria_id INT UNSIGNED NOT NULL,
+    mensagem_id INT UNSIGNED NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (categoria_id, mensagem_id),
+    CONSTRAINT fk_cm_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id) ON DELETE CASCADE,
+    CONSTRAINT fk_cm_mensagem FOREIGN KEY (mensagem_id) REFERENCES mensagens(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
