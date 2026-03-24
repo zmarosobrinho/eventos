@@ -6,6 +6,7 @@ $mensagem = '';
 $erro = '';
 $editando = null;
 $categorias = $pdo->query('SELECT id, nome FROM FRASE_categorias ORDER BY nome ASC')->fetchAll();
+$categoriasMarcadas = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
@@ -21,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!is_array($categoriaIds)) {
                 $categoriaIds = [];
             }
+            $categoriaIds = array_values(array_unique(array_map('intval', $categoriaIds)));
 
             $pdo->beginTransaction();
 
@@ -31,9 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!empty($categoriaIds)) {
                 $stmtRel = $pdo->prepare('INSERT INTO FRASE_mensagens_categorias (mensagem_id, categoria_id) VALUES (:mensagem_id, :categoria_id)');
                 foreach ($categoriaIds as $categoriaId) {
+                    if ($categoriaId <= 0) {
+                        continue;
+                    }
                     $stmtRel->execute([
                         ':mensagem_id' => $mensagemId,
-                        ':categoria_id' => (int)$categoriaId,
+                        ':categoria_id' => $categoriaId,
                     ]);
                 }
             }
@@ -45,16 +50,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($acao === 'atualizar') {
             $id = (int)($_POST['id'] ?? 0);
             $texto = trim($_POST['texto'] ?? '');
+            $categoriaIds = $_POST['categoria_ids'] ?? [];
 
             if ($id <= 0 || $texto === '') {
                 throw new Exception('Dados inválidos para atualização.');
             }
+            if (!is_array($categoriaIds)) {
+                $categoriaIds = [];
+            }
+            $categoriaIds = array_values(array_unique(array_map('intval', $categoriaIds)));
+
+            $pdo->beginTransaction();
 
             $stmt = $pdo->prepare('UPDATE FRASE_mensagens SET texto = :texto WHERE id = :id');
             $stmt->execute([
                 ':id' => $id,
                 ':texto' => $texto,
             ]);
+
+            $stmtDelete = $pdo->prepare('DELETE FROM FRASE_mensagens_categorias WHERE mensagem_id = :mensagem_id');
+            $stmtDelete->execute([':mensagem_id' => $id]);
+
+            if (!empty($categoriaIds)) {
+                $stmtRel = $pdo->prepare('INSERT INTO FRASE_mensagens_categorias (mensagem_id, categoria_id) VALUES (:mensagem_id, :categoria_id)');
+                foreach ($categoriaIds as $categoriaId) {
+                    if ($categoriaId <= 0) {
+                        continue;
+                    }
+                    $stmtRel->execute([
+                        ':mensagem_id' => $id,
+                        ':categoria_id' => $categoriaId,
+                    ]);
+                }
+            }
+
+            $pdo->commit();
             $mensagem = 'Mensagem atualizada com sucesso.';
         }
 
@@ -81,6 +111,12 @@ if (isset($_GET['editar'])) {
     $stmt = $pdo->prepare('SELECT id, texto FROM FRASE_mensagens WHERE id = :id');
     $stmt->execute([':id' => $idEditar]);
     $editando = $stmt->fetch();
+
+    if ($editando) {
+        $stmtCat = $pdo->prepare('SELECT categoria_id FROM FRASE_mensagens_categorias WHERE mensagem_id = :mensagem_id');
+        $stmtCat->execute([':mensagem_id' => (int)$editando['id']]);
+        $categoriasMarcadas = array_map('intval', array_column($stmtCat->fetchAll(), 'categoria_id'));
+    }
 }
 
 $mensagens = $pdo->query('SELECT id, texto FROM FRASE_mensagens ORDER BY id DESC')->fetchAll();
@@ -114,17 +150,20 @@ $mensagens = $pdo->query('SELECT id, texto FROM FRASE_mensagens ORDER BY id DESC
             <label>Texto da frase/mensagem</label>
             <textarea name="texto" rows="5" required><?= htmlspecialchars($editando['texto'] ?? '') ?></textarea>
 
-            <?php if (!$editando): ?>
-                <label>Categorias da mensagem</label>
-                <div class="checks-grid">
-                    <?php foreach ($categorias as $categoria): ?>
-                        <label class="check-item">
-                            <input type="checkbox" name="categoria_ids[]" value="<?= (int)$categoria['id'] ?>">
-                            <?= htmlspecialchars($categoria['nome']) ?>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+            <label>Categorias da mensagem</label>
+            <div class="checks-grid">
+                <?php foreach ($categorias as $categoria): ?>
+                    <label class="check-item">
+                        <input
+                            type="checkbox"
+                            name="categoria_ids[]"
+                            value="<?= (int)$categoria['id'] ?>"
+                            <?= in_array((int)$categoria['id'], $categoriasMarcadas, true) ? 'checked' : '' ?>
+                        >
+                        <?= htmlspecialchars($categoria['nome']) ?>
+                    </label>
+                <?php endforeach; ?>
+            </div>
 
             <button type="submit" class="btn-primary"><?= $editando ? 'Salvar alterações' : 'Cadastrar mensagem' ?></button>
             <?php if ($editando): ?>

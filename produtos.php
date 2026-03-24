@@ -6,6 +6,7 @@ $mensagem = '';
 $erro = '';
 $editando = null;
 $categorias = $pdo->query('SELECT id, nome FROM FRASE_categorias ORDER BY nome ASC')->fetchAll();
+$categoriasMarcadas = [];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
@@ -54,10 +55,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)($_POST['id'] ?? 0);
             $nome = trim($_POST['nome'] ?? '');
             $descricao = trim($_POST['descricao'] ?? '');
+            $categoriaIds = $_POST['categoria_ids'] ?? [];
 
             if ($id <= 0 || $nome === '') {
                 throw new Exception('Dados inválidos para atualização.');
             }
+            if (!is_array($categoriaIds)) {
+                $categoriaIds = [];
+            }
+            $categoriaIds = array_values(array_unique(array_map('intval', $categoriaIds)));
+
+            $pdo->beginTransaction();
 
             $stmt = $pdo->prepare('UPDATE FRASE_produtos SET nome = :nome, descricao = :descricao WHERE id = :id');
             $stmt->execute([
@@ -65,6 +73,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':nome' => $nome,
                 ':descricao' => $descricao,
             ]);
+
+            $stmtDelete = $pdo->prepare('DELETE FROM FRASE_produtos_categorias WHERE produto_id = :produto_id');
+            $stmtDelete->execute([':produto_id' => $id]);
+
+            if (!empty($categoriaIds)) {
+                $stmtVinculo = $pdo->prepare('INSERT INTO FRASE_produtos_categorias (produto_id, categoria_id) VALUES (:produto_id, :categoria_id)');
+                foreach ($categoriaIds as $categoriaId) {
+                    if ($categoriaId <= 0) {
+                        continue;
+                    }
+                    $stmtVinculo->execute([
+                        ':produto_id' => $id,
+                        ':categoria_id' => $categoriaId,
+                    ]);
+                }
+            }
+
+            $pdo->commit();
             $mensagem = 'Produto atualizado com sucesso.';
         }
 
@@ -91,6 +117,12 @@ if (isset($_GET['editar'])) {
     $stmt = $pdo->prepare('SELECT id, nome, descricao FROM FRASE_produtos WHERE id = :id');
     $stmt->execute([':id' => $idEditar]);
     $editando = $stmt->fetch();
+
+    if ($editando) {
+        $stmtCat = $pdo->prepare('SELECT categoria_id FROM FRASE_produtos_categorias WHERE produto_id = :produto_id');
+        $stmtCat->execute([':produto_id' => (int)$editando['id']]);
+        $categoriasMarcadas = array_map('intval', array_column($stmtCat->fetchAll(), 'categoria_id'));
+    }
 }
 
 $produtos = $pdo->query('SELECT id, nome, descricao FROM FRASE_produtos ORDER BY id DESC')->fetchAll();
@@ -127,17 +159,20 @@ $produtos = $pdo->query('SELECT id, nome, descricao FROM FRASE_produtos ORDER BY
             <label>Descrição</label>
             <textarea name="descricao" rows="5"><?= htmlspecialchars($editando['descricao'] ?? '') ?></textarea>
 
-            <?php if (!$editando): ?>
-                <label>Categorias do produto</label>
-                <div class="checks-grid">
-                    <?php foreach ($categorias as $categoria): ?>
-                        <label class="check-item">
-                            <input type="checkbox" name="categoria_ids[]" value="<?= (int)$categoria['id'] ?>">
-                            <?= htmlspecialchars($categoria['nome']) ?>
-                        </label>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
+            <label>Categorias do produto</label>
+            <div class="checks-grid">
+                <?php foreach ($categorias as $categoria): ?>
+                    <label class="check-item">
+                        <input
+                            type="checkbox"
+                            name="categoria_ids[]"
+                            value="<?= (int)$categoria['id'] ?>"
+                            <?= in_array((int)$categoria['id'], $categoriasMarcadas, true) ? 'checked' : '' ?>
+                        >
+                        <?= htmlspecialchars($categoria['nome']) ?>
+                    </label>
+                <?php endforeach; ?>
+            </div>
 
             <button type="submit" class="btn-primary"><?= $editando ? 'Salvar alterações' : 'Cadastrar produto' ?></button>
             <?php if ($editando): ?>
