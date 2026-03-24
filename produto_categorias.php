@@ -60,13 +60,13 @@ if ($produtoId > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Produto x Categorias</title>
+    <title>Manutenção de Categorias por Produto</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
     <div class="top-bar">
-        <h1>Vincular Categorias aos Produtos</h1>
+        <h1>Manutenção de Categorias do Produto</h1>
         <a href="index.php" class="btn-link">← Voltar</a>
     </div>
 
@@ -75,7 +75,7 @@ if ($produtoId > 0) {
 
     <div class="card">
         <form method="get" class="inline-form">
-            <label>Selecione o produto</label>
+            <label>Selecione o produto para atualizar categorias</label>
             <select name="produto_id" required>
                 <option value="">-- Escolha --</option>
                 <?php foreach ($produtos as $produto): ?>
@@ -92,7 +92,7 @@ if ($produtoId > 0) {
     <div class="card">
         <form method="post">
             <input type="hidden" name="produto_id" value="<?= $produtoId ?>">
-            <h2>Categorias vinculadas</h2>
+            <h2>Categorias vinculadas (manutenção)</h2>
 
             <div class="checks-grid">
                 <?php foreach ($categorias as $categoria): ?>

@@ -5,6 +5,7 @@ require_once 'conexao.php';
 $mensagem = '';
 $erro = '';
 $editando = null;
+$categorias = $pdo->query('SELECT id, nome FROM FRASE_categorias ORDER BY nome ASC')->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
@@ -13,16 +14,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($acao === 'criar') {
             $nome = trim($_POST['nome'] ?? '');
             $descricao = trim($_POST['descricao'] ?? '');
+            $categoriaIds = $_POST['categoria_ids'] ?? [];
 
             if ($nome === '') {
                 throw new Exception('O nome do produto é obrigatório.');
             }
+            if (!is_array($categoriaIds)) {
+                $categoriaIds = [];
+            }
+            $categoriaIds = array_values(array_unique(array_map('intval', $categoriaIds)));
+
+            $pdo->beginTransaction();
 
             $stmt = $pdo->prepare('INSERT INTO FRASE_produtos (nome, descricao) VALUES (:nome, :descricao)');
             $stmt->execute([
                 ':nome' => $nome,
                 ':descricao' => $descricao,
             ]);
+            $produtoId = (int)$pdo->lastInsertId();
+
+            if (!empty($categoriaIds)) {
+                $stmtVinculo = $pdo->prepare('INSERT INTO FRASE_produtos_categorias (produto_id, categoria_id) VALUES (:produto_id, :categoria_id)');
+                foreach ($categoriaIds as $categoriaId) {
+                    if ($categoriaId <= 0) {
+                        continue;
+                    }
+                    $stmtVinculo->execute([
+                        ':produto_id' => $produtoId,
+                        ':categoria_id' => $categoriaId,
+                    ]);
+                }
+            }
+
+            $pdo->commit();
             $mensagem = 'Produto cadastrado com sucesso.';
         }
 
@@ -55,6 +79,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensagem = 'Produto excluído com sucesso.';
         }
     } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $erro = $e->getMessage();
     }
 }
@@ -99,6 +126,18 @@ $produtos = $pdo->query('SELECT id, nome, descricao FROM FRASE_produtos ORDER BY
 
             <label>Descrição</label>
             <textarea name="descricao" rows="5"><?= htmlspecialchars($editando['descricao'] ?? '') ?></textarea>
+
+            <?php if (!$editando): ?>
+                <label>Categorias do produto</label>
+                <div class="checks-grid">
+                    <?php foreach ($categorias as $categoria): ?>
+                        <label class="check-item">
+                            <input type="checkbox" name="categoria_ids[]" value="<?= (int)$categoria['id'] ?>">
+                            <?= htmlspecialchars($categoria['nome']) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
 
             <button type="submit" class="btn-primary"><?= $editando ? 'Salvar alterações' : 'Cadastrar produto' ?></button>
             <?php if ($editando): ?>
