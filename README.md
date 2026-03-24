@@ -1,9 +1,9 @@
 # Sistema de Frases para Lives (PHP + MySQL)
 
-Projeto pronto para hospedagem compartilhada e envio manual por FTP.
+Sistema 100% em **PHP puro + MySQL**, sem framework, pronto para hospedagem compartilhada (ex.: **Hostgator**) com upload manual via **FTP/cPanel**.
 
-## 1) Arquivos para enviar ao servidor
-Envie **todos** os arquivos e pastas abaixo para a pasta do site (ex.: `public_html`):
+## 1) Lista de arquivos para enviar ao servidor
+Envie para a pasta do site (normalmente `public_html`):
 
 - `index.php`
 - `login.php`
@@ -18,22 +18,34 @@ Envie **todos** os arquivos e pastas abaixo para a pasta do site (ex.: `public_h
 - `produto_categorias.php`
 - `apresentacao.php`
 - `assets/estilo.css`
-- `banco.sql` (este pode ficar só no seu computador após importar)
+- `banco.sql` (usado para importar o banco; depois pode remover do servidor)
 
-## 2) Como importar o banco
-1. Abra o phpMyAdmin da hospedagem.
-2. Crie um banco de dados (ou use um já criado).
-3. Clique em **Importar** e selecione o arquivo `banco.sql`.
-4. Edite o arquivo `conexao.php` com os dados reais de host, banco, usuário e senha do MySQL.
+## 2) Instalação manual na Hostgator (cPanel + phpMyAdmin)
+1. Entre no **cPanel** da Hostgator.
+2. Em **MySQL Databases**:
+   - crie o banco de dados;
+   - crie o usuário MySQL;
+   - vincule usuário ao banco com **All Privileges**.
+3. Abra o **phpMyAdmin** no cPanel.
+4. Selecione o banco criado.
+5. Clique em **Importar** e envie o arquivo `banco.sql`.
+6. Faça upload dos arquivos para `public_html` (via **Gerenciador de Arquivos** do cPanel ou FTP).
+7. Edite o arquivo `conexao.php` com os dados reais da Hostgator:
+   - host do MySQL (geralmente `localhost`);
+   - nome do banco;
+   - usuário MySQL;
+   - senha MySQL.
+8. Edite `seguranca.php` e troque usuário/senha de acesso ao painel.
+9. Acesse `https://seudominio.com/login.php`.
 
-## 3) Quais páginas abrir no navegador
-1. Abra `https://seudominio.com/login.php` e faça login.
-2. Depois use o menu:
-   - `produtos.php` para cadastrar produtos
-   - `categorias.php` para cadastrar categorias
-   - `mensagens.php` para cadastrar frases e vincular categorias
-   - `produto_categorias.php` para vincular categorias aos produtos
-   - `apresentacao.php` para selecionar produto e ver frases aleatórias
+## 3) Páginas para usar no navegador
+- `login.php` → entrar no sistema
+- `produtos.php` → cadastrar produtos
+- `categorias.php` → cadastrar categorias
+- `mensagens.php` → cadastrar frases e vincular categorias
+- `produto_categorias.php` → vincular categorias aos produtos
+- `apresentacao.php` → selecionar produto e ver frases em ordem aleatória
 
-## Observação importante
-- Troque o usuário e senha definidos em `seguranca.php` antes de publicar.
+## 4) Observações
+- O sistema guarda o produto selecionado na sessão e também aceita `?produto_id=` na URL da `apresentacao.php`.
+- Ao atualizar a página de apresentação, as frases são sorteadas novamente para o mesmo produto selecionado.
