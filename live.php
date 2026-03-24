@@ -1,4 +1,5 @@
 <?php
+include('seguranca.php');
 session_start();
 require_once 'conexao.php';
 

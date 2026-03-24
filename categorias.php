@@ -1,4 +1,5 @@
 <?php
+include('seguranca.php');
 require_once 'conexao.php';
 
 $mensagem = '';

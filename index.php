@@ -1,4 +1,5 @@
 <?php
+include('seguranca.php');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
