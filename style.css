@@ -211,6 +211,16 @@ th {
     margin-bottom: 0;
 }
 
+.live-container {
+    --live-font-size: 1.5em; /* Mesmo tamanho visual do título (h2) */
+}
+
+.live-container .produto-detalhe h2,
+.live-container .produto-detalhe p,
+.live-container .frase-card {
+    font-size: var(--live-font-size);
+}
+
 .live-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -222,7 +232,6 @@ th {
     border: 1px solid #dbe1e8;
     border-radius: 8px;
     padding: 14px;
-    font-size: 16px;
     line-height: 1.45;
     min-height: 80px;
 }
