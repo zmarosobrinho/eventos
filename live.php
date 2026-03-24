@@ -83,6 +83,12 @@ if ($produtoId > 0) {
                 <?php foreach ($frases as $frase): ?>
                     <div class="frase-card">
                         <?= nl2br(htmlspecialchars($frase['texto'])) ?>
+                        <a
+                            href="mensagens.php?editar=<?= (int)$frase['id'] ?>"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="frase-edit-link"
+                        > #</a>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>

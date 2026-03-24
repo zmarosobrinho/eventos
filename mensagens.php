@@ -1,5 +1,6 @@
 <?php
 include('seguranca.php');
+session_start();
 require_once 'conexao.php';
 
 $mensagem = '';
@@ -45,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->commit();
             $mensagem = 'Mensagem cadastrada com sucesso.';
+            $_SESSION['mensagens_ultimas_categorias'] = $categoriaIds;
         }
 
         if ($acao === 'atualizar') {
@@ -117,6 +119,10 @@ if (isset($_GET['editar'])) {
         $stmtCat->execute([':mensagem_id' => (int)$editando['id']]);
         $categoriasMarcadas = array_map('intval', array_column($stmtCat->fetchAll(), 'categoria_id'));
     }
+}
+
+if (!$editando && isset($_SESSION['mensagens_ultimas_categorias']) && is_array($_SESSION['mensagens_ultimas_categorias'])) {
+    $categoriasMarcadas = array_values(array_unique(array_map('intval', $_SESSION['mensagens_ultimas_categorias'])));
 }
 
 $mensagens = $pdo->query('SELECT id, texto FROM FRASE_mensagens ORDER BY id DESC')->fetchAll();
