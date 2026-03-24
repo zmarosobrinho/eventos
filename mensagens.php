@@ -4,6 +4,7 @@ require_once 'conexao.php';
 $mensagem = '';
 $erro = '';
 $editando = null;
+$categorias = $pdo->query('SELECT id, nome FROM FRASE_categorias ORDER BY nome ASC')->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $acao = $_POST['acao'] ?? '';
@@ -11,12 +12,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         if ($acao === 'criar') {
             $texto = trim($_POST['texto'] ?? '');
+            $categoriaIds = $_POST['categoria_ids'] ?? [];
+
             if ($texto === '') {
                 throw new Exception('O texto da mensagem é obrigatório.');
             }
+            if (!is_array($categoriaIds)) {
+                $categoriaIds = [];
+            }
+
+            $pdo->beginTransaction();
 
             $stmt = $pdo->prepare('INSERT INTO FRASE_mensagens (texto) VALUES (:texto)');
             $stmt->execute([':texto' => $texto]);
+
+            $mensagemId = (int)$pdo->lastInsertId();
+            if (!empty($categoriaIds)) {
+                $stmtRel = $pdo->prepare('INSERT INTO FRASE_mensagens_categorias (mensagem_id, categoria_id) VALUES (:mensagem_id, :categoria_id)');
+                foreach ($categoriaIds as $categoriaId) {
+                    $stmtRel->execute([
+                        ':mensagem_id' => $mensagemId,
+                        ':categoria_id' => (int)$categoriaId,
+                    ]);
+                }
+            }
+
+            $pdo->commit();
             $mensagem = 'Mensagem cadastrada com sucesso.';
         }
 
@@ -47,6 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensagem = 'Mensagem excluída com sucesso.';
         }
     } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         $erro = $e->getMessage();
     }
 }
@@ -88,6 +112,18 @@ $mensagens = $pdo->query('SELECT id, texto FROM FRASE_mensagens ORDER BY id DESC
 
             <label>Texto da frase/mensagem</label>
             <textarea name="texto" rows="5" required><?= htmlspecialchars($editando['texto'] ?? '') ?></textarea>
+
+            <?php if (!$editando): ?>
+                <label>Categorias da mensagem</label>
+                <div class="checks-grid">
+                    <?php foreach ($categorias as $categoria): ?>
+                        <label class="check-item">
+                            <input type="checkbox" name="categoria_ids[]" value="<?= (int)$categoria['id'] ?>">
+                            <?= htmlspecialchars($categoria['nome']) ?>
+                        </label>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
 
             <button type="submit" class="btn-primary"><?= $editando ? 'Salvar alterações' : 'Cadastrar mensagem' ?></button>
             <?php if ($editando): ?>

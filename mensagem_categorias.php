@@ -59,13 +59,13 @@ if ($mensagemId > 0) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mensagem x Categorias</title>
+    <title>Manutenção de Categorias por Mensagem</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="container">
     <div class="top-bar">
-        <h1>Vincular Categorias às Mensagens</h1>
+        <h1>Manutenção de Categorias da Mensagem</h1>
         <a href="index.php" class="btn-link">← Voltar</a>
     </div>
 
@@ -74,7 +74,7 @@ if ($mensagemId > 0) {
 
     <div class="card">
         <form method="get" class="inline-form">
-            <label>Selecione a mensagem</label>
+            <label>Selecione a mensagem para atualizar categorias</label>
             <select name="mensagem_id" required>
                 <option value="">-- Escolha --</option>
                 <?php foreach ($mensagens as $item): ?>
