@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>WikiEventos</title>
+  <title>Controle de Amostras TikTok</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header>
     <div class="brand">
-      <h1><a href="{{ url_for('index') }}">WikiEventos</a></h1>
-      <p class="tagline">Catálogo colaborativo de eventos</p>
+      <h1><a href="{{ url_for('index') }}">Amostras TikTok</a></h1>
+      <p class="tagline">Controle vendas, metas de reembolso, links e frases para divulgação.</p>
     </div>
     <nav>
       {% if user %}
         <span>Olá, {{ user.username }}!</span>
-        <a href="{{ url_for('create_event') }}" class="button">Novo evento</a>
+        <a href="{{ url_for('create_product') }}" class="button">Novo produto</a>
         <a href="{{ url_for('logout') }}">Sair</a>
       {% else %}
         <a href="{{ url_for('login') }}">Entrar</a>
@@ -38,7 +38,7 @@
   </main>
 
   <footer>
-    <p>Construído pela comunidade. Compartilhe e mantenha os eventos atualizados.</p>
+    <p>Organize suas amostras, priorize os produtos pendentes e saiba quando pedir o reembolso.</p>
   </footer>
 </body>
 </html>

@@ -1,10 +1,11 @@
-# WikiEventos
+# Controle de Amostras TikTok
 
-Aplicação simples no estilo wiki para cadastro colaborativo de eventos. Qualquer pessoa pode consultar os eventos, mas é necessário estar logado para criar, editar ou excluir.
+Aplicação web para administrar amostras e produtos comprados para divulgação no TikTok. O sistema controla produtos sem reembolso, produtos com meta de vendas para reembolso, vendas por data, links de divulgação, frases de efeito e status do reembolso.
 
 ## Requisitos
 - Python 3.11+
 - pip
+- SQLite para desenvolvimento ou MySQL via `DATABASE_URL`
 
 ## Como rodar
 1. Crie um ambiente virtual e instale dependências:
@@ -13,10 +14,12 @@ Aplicação simples no estilo wiki para cadastro colaborativo de eventos. Qualqu
    source .venv/bin/activate
    pip install -r requirements.txt
    ```
-2. Exporte uma `SECRET_KEY` se desejar customizar a chave da sessão:
+2. Exporte uma `SECRET_KEY` e, se for usar MySQL, uma `DATABASE_URL` compatível com SQLAlchemy:
    ```bash
    export SECRET_KEY="sua-chave-secreta"
+   export DATABASE_URL="mysql+pymysql://usuario:senha@localhost/amostras"
    ```
+   Para MySQL, instale também o driver escolhido, por exemplo `pip install pymysql`.
 3. Execute o servidor:
    ```bash
    flask --app app run --debug
@@ -25,7 +28,9 @@ Aplicação simples no estilo wiki para cadastro colaborativo de eventos. Qualqu
 
 ## Funcionalidades
 - Cadastro e login de usuários.
-- Criação de eventos com cidade, data/hora inicial, data/hora final opcional para eventos de vários dias, descrição e informação de valor.
-- Indicação se o evento é gratuito ou pago.
-- Edição e exclusão colaborativa por qualquer usuário autenticado.
-- Listagem pública dos eventos.
+- Cadastro de produto com data da compra, título, descrição, links do TikTok e memo de frases para venda.
+- Marcação de produtos sem reembolso ou com quantidade mínima de vendas para reembolso.
+- Registro da data de cada venda, com contagem automática até atingir a meta.
+- Destaque de produtos com meta atingida e opção para marcar reembolso como feito.
+- Filtros por compra, status de reembolso, meta pendente, meta atingida, reembolsados e sem reembolso.
+- Página de venda por produto com descrição, links e frases de efeito cadastradas.

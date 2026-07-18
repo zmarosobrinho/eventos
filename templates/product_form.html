@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+  <section class="form-card wide">
+    <h2>{% if product %}Editar produto{% else %}Novo produto{% endif %}</h2>
+    <form method="post">
+      <label for="title">Título do produto</label>
+      <input type="text" id="title" name="title" value="{{ product.title if product else '' }}" required>
+
+      <label for="purchase_date">Data da compra</label>
+      <input type="date" id="purchase_date" name="purchase_date" value="{{ product.purchase_date.isoformat() if product else '' }}" required>
+
+      <label for="description">Descrição do produto</label>
+      <textarea id="description" name="description" rows="4" required>{{ product.description if product else '' }}</textarea>
+
+      <label class="checkbox">
+        <input type="checkbox" name="has_refund_goal" {% if product and product.has_refund_goal %}checked{% endif %}> Tenho reembolso se vender uma quantidade mínima
+      </label>
+
+      <label for="sales_required">Vendas necessárias para reembolso</label>
+      <input type="number" id="sales_required" name="sales_required" min="0" value="{{ product.sales_required if product else 0 }}">
+
+      <label class="checkbox">
+        <input type="checkbox" name="refunded" {% if product and product.refunded %}checked{% endif %}> Reembolso já foi feito
+      </label>
+
+      <label for="refunded_at">Data do reembolso, se já foi feito</label>
+      <input type="date" id="refunded_at" name="refunded_at" value="{{ product.refunded_at.isoformat() if product and product.refunded_at else '' }}">
+
+      <label for="tiktok_links">Links do produto no TikTok, um por linha</label>
+      <textarea id="tiktok_links" name="tiktok_links" rows="4" placeholder="https://www.tiktok.com/...">{{ product.tiktok_links if product else '' }}</textarea>
+
+      <label for="sales_memo">Memo com frases de efeito para vendas, vídeos e lives</label>
+      <textarea id="sales_memo" name="sales_memo" rows="7" placeholder="Ex: Resolve X em poucos segundos; oferta por tempo limitado...">{{ product.sales_memo if product else '' }}</textarea>
+
+      <button type="submit">Salvar</button>
+    </form>
+  </section>
+{% endblock %}
