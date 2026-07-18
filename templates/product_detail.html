@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+  <article class="event-detail product-detail">
+    <header>
+      <div>
+        <p class="meta">Comprado em {{ product.purchase_date.strftime('%d/%m/%Y') }}</p>
+        <h2>{{ product.title }}</h2>
+        <p class="meta status">{{ product.status_label() }}</p>
+      </div>
+      <div class="actions">
+        <a class="button" href="{{ url_for('edit_product', product_id=product.id) }}">Editar</a>
+        <form action="{{ url_for('delete_product', product_id=product.id) }}" method="post" onsubmit="return confirm('Deseja remover este produto?');">
+          <button type="submit">Excluir</button>
+        </form>
+      </div>
+    </header>
+
+    <section class="sales-page">
+      <h3>Página de venda</h3>
+      <p>{{ product.description }}</p>
+      {% if product.sales_memo %}
+        <div class="memo">
+          <h4>Frases de efeito e argumentos</h4>
+          <p>{{ product.sales_memo | replace('\n', '<br>') | safe }}</p>
+        </div>
+      {% endif %}
+      {% if product.link_list() %}
+        <h4>Links para divulgar</h4>
+        <ul class="links">
+          {% for link in product.link_list() %}
+            <li><a href="{{ link }}" target="_blank" rel="noopener noreferrer">{{ link }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </section>
+
+    <section class="highlight">
+      {% if product.has_refund_goal %}
+        <strong>Meta:</strong> {{ product.sales_count() }} de {{ product.sales_required }} vendas registradas.
+        {% if product.goal_reached() %}
+          <span class="badge success">Atingido</span>
+        {% else %}
+          <span class="badge">Faltam {{ product.remaining_sales() }}</span>
+        {% endif %}
+        {% if product.refunded %}
+          <span class="badge success">Reembolso feito{% if product.refunded_at %} em {{ product.refunded_at.strftime('%d/%m/%Y') }}{% endif %}</span>
+        {% elif product.goal_reached() %}
+          <form action="{{ url_for('mark_refunded', product_id=product.id) }}" method="post" class="inline-form">
+            <button type="submit">Marcar reembolso feito</button>
+          </form>
+        {% endif %}
+      {% else %}
+        <strong>Este produto não possui reembolso.</strong>
+      {% endif %}
+    </section>
+
+    {% if product.has_refund_goal and not product.refunded %}
+      <section class="form-card embedded">
+        <h3>Anotar venda</h3>
+        <form action="{{ url_for('add_sale', product_id=product.id) }}" method="post">
+          <label for="sold_on">Dia da venda</label>
+          <input type="date" id="sold_on" name="sold_on" required>
+          <label for="notes">Observação opcional</label>
+          <input type="text" id="notes" name="notes" placeholder="Ex: venda após live da noite">
+          <button type="submit">Registrar venda</button>
+        </form>
+      </section>
+    {% endif %}
+
+    <section>
+      <h3>Vendas registradas</h3>
+      {% if product.sales %}
+        <ul class="sales-list">
+          {% for sale in product.sales|sort(attribute='sold_on') %}
+            <li>
+              <span>{{ sale.sold_on.strftime('%d/%m/%Y') }}{% if sale.notes %} — {{ sale.notes }}{% endif %}</span>
+              <form action="{{ url_for('delete_sale', sale_id=sale.id) }}" method="post">
+                <button type="submit">Remover</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>Nenhuma venda anotada para este produto.</p>
+      {% endif %}
+    </section>
+  </article>
+{% endblock %}

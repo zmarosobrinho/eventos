@@ -2,40 +2,57 @@
 {% block content %}
   <section class="hero">
     <div>
-      <h2>Encontre eventos em qualquer cidade</h2>
-      <p>Consulte sem login e participe da curadoria colaborativa.</p>
+      <h2>Painel de produtos</h2>
+      <p>Veja o que precisa de mais vídeos e lives, quais metas foram atingidas e quais itens já foram reembolsados.</p>
     </div>
-    {% if user %}
-      <a class="button" href="{{ url_for('create_event') }}">Cadastrar evento</a>
-    {% else %}
-      <a class="button" href="{{ url_for('register') }}">Crie sua conta</a>
-    {% endif %}
+    <a class="button" href="{{ url_for('create_product') }}">Cadastrar produto</a>
   </section>
 
+  <form class="filters" method="get">
+    <label>Ordenar
+      <select name="sort">
+        <option value="purchase_date_desc" {% if sort == 'purchase_date_desc' %}selected{% endif %}>Compra mais recente</option>
+        <option value="purchase_date_asc" {% if sort == 'purchase_date_asc' %}selected{% endif %}>Compra mais antiga</option>
+        <option value="status" {% if sort == 'status' %}selected{% endif %}>Status do reembolso</option>
+      </select>
+    </label>
+    <label>Status
+      <select name="status">
+        <option value="all" {% if status == 'all' %}selected{% endif %}>Todos</option>
+        <option value="not_refunded" {% if status == 'not_refunded' %}selected{% endif %}>Com reembolso em aberto</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Meta pendente</option>
+        <option value="reached" {% if status == 'reached' %}selected{% endif %}>Meta atingida</option>
+        <option value="refunded" {% if status == 'refunded' %}selected{% endif %}>Já reembolsados</option>
+        <option value="no_refund" {% if status == 'no_refund' %}selected{% endif %}>Sem reembolso</option>
+      </select>
+    </label>
+    <button type="submit">Aplicar</button>
+  </form>
+
   <section class="list">
-    {% if events %}
+    {% if products %}
       <ul>
-        {% for event in events %}
-          <li class="card">
+        {% for product in products %}
+          <li class="card product-card {{ 'reached' if product.goal_reached() and not product.refunded else '' }}">
             <div>
-              <h3><a href="{{ url_for('event_detail', event_id=event.id) }}">{{ event.title }}</a></h3>
-              <p class="meta">{{ event.city }} • {{ event.schedule_label() }} • {{ event.paid_label() }}</p>
-              <p class="description">{{ event.description[:160] }}{% if event.description|length > 160 %}...{% endif %}</p>
+              <h3><a href="{{ url_for('product_detail', product_id=product.id) }}">{{ product.title }}</a></h3>
+              <p class="meta">Comprado em {{ product.purchase_date.strftime('%d/%m/%Y') }} • {{ product.status_label() }}</p>
+              {% if product.has_refund_goal %}
+                <p class="progress">{{ product.sales_count() }} de {{ product.sales_required }} vendas{% if not product.goal_reached() %} — faltam {{ product.remaining_sales() }}{% endif %}</p>
+              {% else %}
+                <p class="progress">Produto sem meta de reembolso.</p>
+              {% endif %}
+              <p class="description">{{ product.description[:160] }}{% if product.description|length > 160 %}...{% endif %}</p>
             </div>
             <div class="actions">
-              <a href="{{ url_for('event_detail', event_id=event.id) }}">Ver detalhes</a>
-              {% if user %}
-                <a href="{{ url_for('edit_event', event_id=event.id) }}">Editar</a>
-                <form action="{{ url_for('delete_event', event_id=event.id) }}" method="post" onsubmit="return confirm('Deseja remover este evento?');">
-                  <button type="submit">Excluir</button>
-                </form>
-              {% endif %}
+              <a href="{{ url_for('product_detail', product_id=product.id) }}">Página de venda</a>
+              <a href="{{ url_for('edit_product', product_id=product.id) }}">Editar</a>
             </div>
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>Nenhum evento cadastrado ainda. Que tal adicionar o primeiro?</p>
+      <p>Nenhum produto cadastrado ainda. Cadastre a primeira amostra para começar o controle.</p>
     {% endif %}
   </section>
 {% endblock %}
